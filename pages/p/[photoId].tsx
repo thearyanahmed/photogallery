@@ -65,8 +65,6 @@ export async function getStaticPaths() {
     .max_results(400)
     .execute();
 
-  console.log("results", results);
-
   let fullPaths = [];
   for (let i = 0; i < results.resources.length; i++) {
     fullPaths.push({ params: { photoId: i.toString() } });

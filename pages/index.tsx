@@ -117,12 +117,16 @@ export async function getStaticProps() {
   const results = await cloudinary.v2.search
     .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
     .sort_by("public_id", "desc")
-    .max_results(400)
+    .max_results(50)
     .execute();
+
   let reducedResults: ImageProps[] = [];
 
   let i = 0;
   for (let result of results.resources) {
+    // Exclude videos and gifs
+    if (result.resource_type === "video" || result.format === "gif") continue;
+
     reducedResults.push({
       id: i,
       height: result.height,
@@ -130,6 +134,7 @@ export async function getStaticProps() {
       public_id: result.public_id,
       format: result.format,
     });
+
     i++;
   }
 
