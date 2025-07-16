@@ -6,6 +6,7 @@ export interface ImageProps {
   public_id: string;
   format: string;
   blurDataUrl?: string;
+  url: string; // Optional, used for direct image URLs
 }
 
 export interface SharedModalProps {

@@ -4,10 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
-import Bridge from "../components/Icons/Bridge";
-import Logo from "../components/Icons/Logo";
 import Modal from "../components/Modal";
-import cloudinary from "../utils/cloudinary";
 import getBase64ImageUrl from "../utils/generateBlurPlaceholder";
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
@@ -50,7 +47,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
           />
         )}
         <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
-          {images.map(({ id, public_id, format, blurDataUrl }) => (
+          {images.map(({ id, public_id, format, blurDataUrl, url }) => (
             <Link
               key={id}
               href={`/?photoId=${id}`}
@@ -65,7 +62,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
                 style={{ transform: "translate3d(0, 0, 0)" }}
                 placeholder="blur"
                 blurDataURL={blurDataUrl}
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_720/${public_id}.${format}`}
+                src={url}
                 width={720}
                 height={480}
                 sizes="(max-width: 640px) 100vw,
@@ -77,36 +74,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
           ))}
         </div>
       </main>
-      <footer className="p-6 text-center text-white/80 sm:p-12">
-        Thank you to{" "}
-        <a
-          href="https://edelsonphotography.com/"
-          target="_blank"
-          className="font-semibold hover:text-white"
-          rel="noreferrer"
-        >
-          Josh Edelson
-        </a>
-        ,{" "}
-        <a
-          href="https://www.newrevmedia.com/"
-          target="_blank"
-          className="font-semibold hover:text-white"
-          rel="noreferrer"
-        >
-          Jenny Morgan
-        </a>
-        , and{" "}
-        <a
-          href="https://www.garysextonphotography.com/"
-          target="_blank"
-          className="font-semibold hover:text-white"
-          rel="noreferrer"
-        >
-          Gary Sexton
-        </a>{" "}
-        for the pictures.
-      </footer>
+
     </>
   );
 };
@@ -114,31 +82,20 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
 export default Home;
 
 export async function getStaticProps() {
-  const results = await cloudinary.v2.search
-    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
-    .sort_by("public_id", "desc")
-    .max_results(50)
-    .execute();
-
-  let reducedResults: ImageProps[] = [];
-
-  let i = 0;
-  for (let result of results.resources) {
-    // Exclude videos and gifs
-    if (result.resource_type === "video" || result.format === "gif") continue;
-
+  // Fetch images from DigitalOcean Spaces instead of Cloudinary
+  const reducedResults: ImageProps[] = [];
+  for (let i = 0; i < 5; i++) {
     reducedResults.push({
       id: i,
-      height: result.height,
-      width: result.width,
-      public_id: result.public_id,
-      format: result.format,
+      height: "480", // Set to actual image height if known
+      width: "720",  // Set to actual image width if known
+      public_id: `mandelbrot_default_${i}`,
+      format: "png",
+      url: `${process.env.BASE_URL}/${process.env.BUCKET}/${process.env.IMAGE_PREFIX}${i}.png`,
     });
-
-    i++;
   }
 
-  const blurImagePromises = results.resources.map((image: ImageProps) => {
+  const blurImagePromises = reducedResults.map((image: ImageProps) => {
     return getBase64ImageUrl(image);
   });
   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
@@ -153,3 +110,46 @@ export async function getStaticProps() {
     },
   };
 }
+
+
+
+// export async function getStaticPropsBackup() {
+//   const results = await cloudinary.v2.search
+//     .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
+//     .sort_by("public_id", "desc")
+//     .max_results(50)
+//     .execute();
+
+//   let reducedResults: ImageProps[] = [];
+
+//   let i = 0;
+//   for (let result of results.resources) {
+//     // Exclude videos and gifs
+//     if (result.resource_type === "video" || result.format === "gif") continue;
+
+//     reducedResults.push({
+//       id: i,
+//       height: result.height,
+//       width: result.width,
+//       public_id: result.public_id,
+//       format: result.format,
+//     });
+
+//     i++;
+//   }
+
+//   const blurImagePromises = results.resources.map((image: ImageProps) => {
+//     return getBase64ImageUrl(image);
+//   });
+//   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
+
+//   for (let i = 0; i < reducedResults.length; i++) {
+//     reducedResults[i].blurDataUrl = imagesWithBlurDataUrls[i];
+//   }
+
+//   return {
+//     props: {
+//       images: reducedResults,
+//     },
+//   };
+// }

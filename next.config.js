@@ -8,6 +8,13 @@ module.exports = {
         pathname: "/**",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "benchmarkap.lon1.cdn.digitaloceanspaces.com",
+        port: "",
+        pathname: "/fractals/**",
+        search: "",
+      },
     ],
   },
 };

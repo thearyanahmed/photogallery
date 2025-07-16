@@ -12,7 +12,7 @@ const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
   const { photoId } = router.query;
   let index = Number(photoId);
 
-  const currentPhotoUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_2560/${currentPhoto.public_id}.${currentPhoto.format}`;
+  const currentPhotoUrl = currentPhoto.url;
 
   return (
     <>
@@ -31,24 +31,26 @@ const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
 export default Home;
 
 export const getStaticProps: GetStaticProps = async (context) => {
-  const results = await getResults();
 
-  let reducedResults: ImageProps[] = [];
-  let i = 0;
-  for (let result of results.resources) {
+  const reducedResults: ImageProps[] = [];
+  for (let i = 0; i < 5; i++) {
     reducedResults.push({
       id: i,
-      height: result.height,
-      width: result.width,
-      public_id: result.public_id,
-      format: result.format,
+      height: "480", // Set to actual image height if known
+      width: "720",  // Set to actual image width if known
+      public_id: `mandelbrot_default_${i}`,
+      format: "png",
+      url: `${process.env.BASE_URL}/${process.env.BUCKET}/${process.env.IMAGE_PREFIX}${i}.png`,
     });
-    i++;
   }
+
+  console.log("Reduced Results:", reducedResults);
 
   const currentPhoto = reducedResults.find(
     (img) => img.id === Number(context.params.photoId),
   );
+
+  console.log("Current Photo:", currentPhoto);
   currentPhoto.blurDataUrl = await getBase64ImageUrl(currentPhoto);
 
   return {
@@ -59,16 +61,21 @@ export const getStaticProps: GetStaticProps = async (context) => {
 };
 
 export async function getStaticPaths() {
-  const results = await cloudinary.v2.search
-    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
-    .sort_by("public_id", "desc")
-    .max_results(400)
-    .execute();
-
-  let fullPaths = [];
-  for (let i = 0; i < results.resources.length; i++) {
-    fullPaths.push({ params: { photoId: i.toString() } });
+  const reducedResults: ImageProps[] = [];
+  for (let i = 0; i < 5; i++) {
+    reducedResults.push({
+      id: i,
+      height: "480", // Set to actual image height if known
+      width: "720",  // Set to actual image width if known
+      public_id: `mandelbrot_default_${i}`,
+      format: "png",
+      url: `${process.env.BASE_URL}/${process.env.BUCKET}/${process.env.IMAGE_PREFIX}${i}.png`,
+    });
   }
+
+  const fullPaths = reducedResults.map((img) => ({
+    params: { photoId: img.id.toString() },
+  }));
 
   return {
     paths: fullPaths,
