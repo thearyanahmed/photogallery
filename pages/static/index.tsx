@@ -41,8 +41,8 @@ const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
                     {images.map(({ id, blurDataUrl, url }) => (
                         <Link
                             key={id}
-                            href={`/static?photoId=${id}`}
-                            as={`/static/p/${id}`}
+                            href={`/p/${id}`}
+                            as={`/p/${id}`}
                             ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
                             shallow
                             className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
