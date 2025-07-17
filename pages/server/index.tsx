@@ -1,14 +1,14 @@
-import type { NextPage, GetStaticProps } from "next";
+import type { NextPage, GetServerSideProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
-import Modal from "../components/Modal";
-import getBase64ImageUrl from "../utils/generateBlurPlaceholder";
-import type { ImageProps } from "../utils/types";
-import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
-import { getImages } from "../utils/getImages";
+import Modal from "../../components/Modal";
+import getBase64ImageUrl from "../../utils/generateBlurPlaceholder";
+import type { ImageProps } from "../../utils/types";
+import { useLastViewedPhoto } from "../../utils/useLastViewedPhoto";
+import { getImages } from "../../utils/getImages";
 
 const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
   const router = useRouter();
@@ -26,7 +26,7 @@ const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
   return (
     <>
       <Head>
-        <title>Static Gallery View</title>
+        <title>Server Side Gallery View</title>
       </Head>
       <main className="mx-auto max-w-[1960px] p-4">
         {photoId && (
@@ -69,8 +69,12 @@ const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
   );
 };
 
-export const getStaticProps: GetStaticProps = async () => {
-  const images: ImageProps[] = getImages(50, null);
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  context.res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=60, stale-while-revalidate=120'
+  );
+  const images: ImageProps[] = getImages(10, null);
 
   const blurImagePromises = images.map((image) => getBase64ImageUrl(image));
   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
