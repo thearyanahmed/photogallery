@@ -41,9 +41,9 @@ export const getRandomImages = (count: number): ImageProps[] => {
         id: img.id ?? idx,
         height: img.height ?? "480",
         width: img.width ?? "720",
-        public_id: img.public_id ?? `mandelbrot_${img.id ?? idx}`,
+        public_id: img.file_name,
         format: img.format ?? "png",
-        url: img.cdn_url ?? `${process.env.BASE_URL}/${process.env.BUCKET}/${process.env.IMAGE_PREFIX}${img.id ?? idx}.png`,
+        url: img.cdn_url ?? `${process.env.BASE_URL}/${process.env.BUCKET}/${img.file_name}`,
     }));
 
     return images;
