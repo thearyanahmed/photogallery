@@ -1,4 +1,4 @@
-import type { NextPage, GetServerSideProps, GetStaticProps } from "next";
+import type { NextPage, GetStaticProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
@@ -70,7 +70,7 @@ const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
 };
 
 export const getStaticProps: GetStaticProps = async () => {
-    const images: ImageProps[] = getImages(10, null);
+    const images: ImageProps[] = getImages(50, null);
 
     const blurImagePromises = images.map((image) => getBase64ImageUrl(image));
     const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
