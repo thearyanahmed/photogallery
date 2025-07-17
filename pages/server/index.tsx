@@ -69,8 +69,8 @@ const ServerPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  context.res.setHeader(
+export const getServerSideProps: GetServerSideProps = async ({ res }) => {
+  res.setHeader(
     'Cache-Control',
     'public, s-maxage=60, stale-while-revalidate=120'
   );
