@@ -2,7 +2,7 @@ import type { ImageProps } from "../utils/types";
 
 export const getImages = (): ImageProps[] => {
     const reducedResults: ImageProps[] = [];
-    for (let i = 0; i < 620; i++) {
+    for (let i = 0; i < 50; i++) {
         reducedResults.push({
             id: i,
             height: "480", // Set to actual image height if known
