@@ -10,7 +10,7 @@ import type { ImageProps } from "../../utils/types";
 import { useLastViewedPhoto } from "../../utils/useLastViewedPhoto";
 import { getImages } from "../../utils/getImages";
 
-const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
+const ServerPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
   const router = useRouter();
   const { photoId } = router.query;
   const [lastViewedPhoto, setLastViewedPhoto] = useLastViewedPhoto();
@@ -90,4 +90,4 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   };
 };
 
-export default StaticPage;
+export default ServerPage;
