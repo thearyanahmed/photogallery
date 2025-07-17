@@ -2,8 +2,6 @@ import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Carousel from "../../components/Carousel";
-import getResults from "../../utils/cachedImages";
-import cloudinary from "../../utils/cloudinary";
 import getBase64ImageUrl from "../../utils/generateBlurPlaceholder";
 import type { ImageProps } from "../../utils/types";
 import { getImages } from "../../utils/getImages";
@@ -33,7 +31,7 @@ export default Home;
 
 export const getStaticProps: GetStaticProps = async (context) => {
 
-  const reducedResults: ImageProps[] = getImages();
+  const reducedResults: ImageProps[] = getImages(50, Number(context.params.photoId));
 
   const currentPhoto = reducedResults.find(
     (img) => img.id === Number(context.params.photoId),
@@ -49,17 +47,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 };
 
 export async function getStaticPaths() {
-  const reducedResults: ImageProps[] = [];
-  for (let i = 0; i < 5; i++) {
-    reducedResults.push({
-      id: i,
-      height: "480", // Set to actual image height if known
-      width: "720",  // Set to actual image width if known
-      public_id: `mandelbrot_${i}`,
-      format: "png",
-      url: `${process.env.BASE_URL}/${process.env.BUCKET}/${process.env.IMAGE_PREFIX}${i}.png`,
-    });
-  }
+  const reducedResults: ImageProps[] = getImages(10, null);
 
   const fullPaths = reducedResults.map((img) => ({
     params: { photoId: img.id.toString() },

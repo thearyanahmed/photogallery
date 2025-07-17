@@ -18,4 +18,7 @@ module.exports = {
       },
     ],
   },
+  experimental: {
+    largePageDataBytes: 150 * 1024 * 1024, // 150 MB limit
+  },
 };

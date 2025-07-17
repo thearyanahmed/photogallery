@@ -1,4 +1,4 @@
-import type { NextPage } from "next";
+import type { NextPage, GetServerSideProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,17 +10,15 @@ import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
 import { getImages } from "../utils/getImages";
 
-const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
+const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
   const router = useRouter();
   const { photoId } = router.query;
   const [lastViewedPhoto, setLastViewedPhoto] = useLastViewedPhoto();
-
   const lastViewedPhotoRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    // This effect keeps track of the last viewed photo in the modal to keep the index page in sync when the user navigates back
     if (lastViewedPhoto && !photoId) {
-      lastViewedPhotoRef.current.scrollIntoView({ block: "center" });
+      lastViewedPhotoRef.current?.scrollIntoView({ block: "center" });
       setLastViewedPhoto(null);
     }
   }, [photoId, lastViewedPhoto, setLastViewedPhoto]);
@@ -28,15 +26,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
   return (
     <>
       <Head>
-        <title>Next.js Conf 2022 Photos</title>
-        <meta
-          property="og:image"
-          content="https://nextjsconf-pics.vercel.app/og-image.png"
-        />
-        <meta
-          name="twitter:image"
-          content="https://nextjsconf-pics.vercel.app/og-image.png"
-        />
+        <title>Server Side Gallery View</title>
       </Head>
       <main className="mx-auto max-w-[1960px] p-4">
         {photoId && (
@@ -48,17 +38,17 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
           />
         )}
         <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
-          {images.map(({ id, public_id, format, blurDataUrl, url }) => (
+          {images.map(({ id, blurDataUrl, url }) => (
             <Link
               key={id}
-              href={`/?photoId=${id}`}
+              href={`/p/${id}`}
               as={`/p/${id}`}
               ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
               shallow
               className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
             >
               <Image
-                alt="Next.js Conf photo"
+                alt="Gallery photo"
                 className="transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110"
                 style={{ transform: "translate3d(0, 0, 0)" }}
                 placeholder="blur"
@@ -75,73 +65,29 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
           ))}
         </div>
       </main>
-
     </>
   );
 };
 
-export default Home;
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  context.res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=60, stale-while-revalidate=120'
+  );
+  const images: ImageProps[] = getImages(10, null);
 
-export async function getStaticProps() {
-  // Fetch images from DigitalOcean Spaces instead of Cloudinary
-
-  const reducedResults: ImageProps[] = getImages();
-
-  const blurImagePromises = reducedResults.map((image: ImageProps) => {
-    return getBase64ImageUrl(image);
-  });
+  const blurImagePromises = images.map((image) => getBase64ImageUrl(image));
   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
 
-  for (let i = 0; i < reducedResults.length; i++) {
-    reducedResults[i].blurDataUrl = imagesWithBlurDataUrls[i];
+  for (let i = 0; i < images.length; i++) {
+    images[i].blurDataUrl = imagesWithBlurDataUrls[i];
   }
 
   return {
     props: {
-      images: reducedResults,
+      images,
     },
   };
-}
+};
 
-
-
-// export async function getStaticPropsBackup() {
-//   const results = await cloudinary.v2.search
-//     .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
-//     .sort_by("public_id", "desc")
-//     .max_results(50)
-//     .execute();
-
-//   let reducedResults: ImageProps[] = [];
-
-//   let i = 0;
-//   for (let result of results.resources) {
-//     // Exclude videos and gifs
-//     if (result.resource_type === "video" || result.format === "gif") continue;
-
-//     reducedResults.push({
-//       id: i,
-//       height: result.height,
-//       width: result.width,
-//       public_id: result.public_id,
-//       format: result.format,
-//     });
-
-//     i++;
-//   }
-
-//   const blurImagePromises = results.resources.map((image: ImageProps) => {
-//     return getBase64ImageUrl(image);
-//   });
-//   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
-
-//   for (let i = 0; i < reducedResults.length; i++) {
-//     reducedResults[i].blurDataUrl = imagesWithBlurDataUrls[i];
-//   }
-
-//   return {
-//     props: {
-//       images: reducedResults,
-//     },
-//   };
-// }
+export default StaticPage;
