@@ -70,7 +70,7 @@ const StaticPage: NextPage<{ images: ImageProps[] }> = ({ images }) => {
 };
 
 export const getStaticProps: GetStaticProps = async () => {
-  const images: ImageProps[] = getImages(50, null);
+  const images: ImageProps[] = getImages(15, null);
 
   const blurImagePromises = images.map((image) => getBase64ImageUrl(image));
   const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
@@ -83,7 +83,7 @@ export const getStaticProps: GetStaticProps = async () => {
     props: {
       images,
     },
-    revalidate: 500,
+    revalidate: 300,
   };
 };
 
