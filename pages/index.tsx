@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import getBase64ImageUrl from "../utils/generateBlurPlaceholder";
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
+import { getImages } from "../utils/getImages";
 
 const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
   const router = useRouter();
@@ -83,17 +84,8 @@ export default Home;
 
 export async function getStaticProps() {
   // Fetch images from DigitalOcean Spaces instead of Cloudinary
-  const reducedResults: ImageProps[] = [];
-  for (let i = 0; i < 5; i++) {
-    reducedResults.push({
-      id: i,
-      height: "480", // Set to actual image height if known
-      width: "720",  // Set to actual image width if known
-      public_id: `mandelbrot_default_${i}`,
-      format: "png",
-      url: `${process.env.BASE_URL}/${process.env.BUCKET}/${process.env.IMAGE_PREFIX}${i}.png`,
-    });
-  }
+
+  const reducedResults: ImageProps[] = getImages();
 
   const blurImagePromises = reducedResults.map((image: ImageProps) => {
     return getBase64ImageUrl(image);
